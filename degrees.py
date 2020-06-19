@@ -12,7 +12,6 @@ people = {}
 # Maps movie_ids to a dictionary of: title, year, stars (a set of person_ids)
 movies = {}
 
-
 def load_data(directory):
     """
     Load data from CSV files into memory.
@@ -91,9 +90,53 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
+    # Initialize frontier to just the starting position
+    start = Node(state=source, parent=None, action=None)
+    frontier = QueueFrontier()
+    frontier.add(start)
 
-    # TODO
-    raise NotImplementedError
+    # Initialize an empty explored set
+    explored = set()
+    solution = []
+
+    # Keep track of number of states explored
+    num_explored = 0
+
+    # Keep looping until solution found
+    while True:
+
+        # If nothing left in frontier, then no path
+        if frontier.empty():
+            return None
+
+        # Choose a node from the frontier
+        node = frontier.remove()
+        num_explored += 1
+
+        # to prevent endless run
+        if num_explored > 200:
+            sys.exit("couldn't find quick solution")
+
+        # Mark node as explored
+        explored.add(node.state)
+
+        # Add neighbors to frontier
+        neighbors = neighbors_for_person(node.state)
+        for action, state in neighbors:
+            if not frontier.contains_state(state) and state not in explored:
+                # If node is the goal, then we have a solution
+                if state == target:
+                    # Add current/last connection to the goal person
+                    solution.append([action, state])
+                    # Add all previous connections using parent nodes
+                    while node.parent is not None:
+                        solution.append([node.action, node.state]) 
+                        node = node.parent
+                    solution.reverse()
+                    print(f"{num_explored} nodes were explored.")
+                    return solution
+                child = Node(state=state, parent=node, action=action)
+                frontier.add(child)
 
 
 def person_id_for_name(name):
